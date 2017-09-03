@@ -47,7 +47,8 @@ for file_position, char in data.items():
     elif char == 'F':
         finish_position = translated_position
 
-player_rotation = 0
+i = 0
+player_rotation = 90
 player_animation_dt = 0
 player_animation_duration = 0.3
 
@@ -197,17 +198,29 @@ def tick(dt):
         updated_player_position_x, updated_player_position_y = player_position
 
         if pyglet.window.key.UP in pressed_keys:
-            updated_player_position_y += 1
-            player_rotation = 180
+            if player_rotation == 0:
+                updated_player_position_y -= 1
+            elif player_rotation == 90:
+                updated_player_position_x += 1
+            elif player_rotation == 180:
+                updated_player_position_y += 1
+            elif player_rotation == 270:
+                updated_player_position_x -= 1
         if pyglet.window.key.DOWN in pressed_keys:
-            updated_player_position_y -= 1
-            player_rotation = 0
+            if player_rotation == 0:
+                updated_player_position_y += 1
+            elif player_rotation == 90:
+                updated_player_position_x -= 1
+            elif player_rotation == 180:
+                updated_player_position_y -= 1
+            elif player_rotation == 270:
+                updated_player_position_x += 1
         if pyglet.window.key.RIGHT in pressed_keys:
-            updated_player_position_x += 1
-            player_rotation = 90
+            player_rotation -= 90
         if pyglet.window.key.LEFT in pressed_keys:
-            updated_player_position_x -= 1
-            player_rotation = 270
+            player_rotation += 90
+
+        player_rotation = player_rotation % 360
 
         updated_player_position = updated_player_position_x, updated_player_position_y
 

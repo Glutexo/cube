@@ -8,13 +8,20 @@ play_sound = True
 
 # Model from: https://opengameart.org/content/treasure-chest-3
 # (but use a cleaned-up model instead of the one from there)!
-chest = pyglet.image.load('Treasurechest_DIFF.png')
-chest_texture_region = chest.get_texture()
+finish_image = pyglet.image.load('Treasurechest_DIFF.png')
+finish_texture_region = finish_image.get_texture()
 
-batch = pyglet.graphics.Batch()
+player_image = pyglet.image.load('texture.png')
+player_texture_region = player_image.get_texture()
+
+finish_batch = pyglet.graphics.Batch()
+player_batch = pyglet.graphics.Batch()
 
 with open('chest.obj') as chest_obj:
-    batch_loader.load_obj_to_batch(chest_obj, batch)
+    batch_loader.load_obj_to_batch(chest_obj, finish_batch)
+
+with open('slimemodel.obj') as slimemodel_obj:
+    batch_loader.load_obj_to_batch(slimemodel_obj, player_batch)
 
 max_y = 0
 with open('maze.txt', 'r') as file:
@@ -86,14 +93,18 @@ def pushed_matrix_at(x, y, scale=1, rotate=(0, 0, 0, 0)):
     yield
     pyglet.gl.glPopMatrix()
 
+
 def draw_cube_at(x, y, scale=1, rotate=(0, 0, 0, 0)):
+    pyglet.gl.glFrontFace(pyglet.gl.GL_CW)
     with pushed_matrix_at(x, y, scale, rotate):
         draw_cube()
 
-def draw_batch_at(x, y, scale=1, rotate=(0, 0, 0, 0)):
+
+def draw_batch_at(batch, texture, x, y, scale=1, rotate=(0, 0, 0, 0)):
+    pyglet.gl.glFrontFace(pyglet.gl.GL_CCW)
     with pushed_matrix_at(x, y, scale, rotate):
         pyglet.gl.glEnable(pyglet.gl.GL_TEXTURE_2D)
-        pyglet.gl.glBindTexture(pyglet.gl.GL_TEXTURE_2D, chest_texture_region.id)
+        pyglet.gl.glBindTexture(pyglet.gl.GL_TEXTURE_2D, texture.id)
 
         batch.draw()
 
@@ -149,7 +160,7 @@ def on_draw():
     # posunutím všeho dopředu a pozorovatele/kamery dozaru.
     pyglet.gl.glTranslatef(0, 0, -6)
 
-    pyglet.gl.glRotatef(0, 1, 1, 0)
+    pyglet.gl.glRotatef(-15, 1, 1, 0)
     pyglet.gl.glScalef(0.5, 0.5, 0.5)
 
     pyglet.gl.glTranslatef(-player_position[0], -player_position[1], 0)
@@ -161,10 +172,10 @@ def on_draw():
         draw_cube_at(*wall_position)
 
     # Finish.
-    draw_batch_at(*finish_position, 0.005, (90, 1, 0, 0))
+    draw_batch_at(finish_batch, finish_texture_region, *finish_position, 0.005, (90, 1, 0, 0))
 
     # Player.
-    draw_cube_at(*player_position, 0.5)
+    draw_batch_at(player_batch, player_texture_region, *player_position, 0.25, (90, 1, 0, 0))
 
 
 def tick(dt):

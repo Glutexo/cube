@@ -2,11 +2,53 @@ import pyglet
 
 window = pyglet.window.Window(width=400, height=400, config=pyglet.gl.Config(depth_size=24, double_buffer=True))
 
+position = [0, 1, 0]
+
 RUNNING_TIME = 0
 
 # X roste doprava
 # Y roste dolů
 # Z roste k nám
+
+def draw_cube():
+    pyglet.graphics.draw_indexed(8,
+
+                                 pyglet.gl.GL_TRIANGLE_STRIP,
+
+                                 # Odkazy do n-tic níže
+                                 [1, 0, 2, 3, 6, 7, 5, 4, 1, 0, 0, 4, 3, 7, 7, 6, 6, 5, 2, 1],
+
+                                 # Vrcholy
+                                 ('v3f', (-0.5, -0.5,  0.5,   # 0
+                                          0.5,  -0.5,  0.5,   # 1
+                                          0.5,   0.5,  0.5,   # 2
+                                          -0.5,  0.5,  0.5,   # 3
+                                          -0.5, -0.5, -0.5,   # 4
+                                          0.5,  -0.5, -0.5,   # 5
+                                          0.5,   0.5, -0.5,   # 6
+                                          -0.5,  0.5, -0.5)), # 7
+
+                                 # Barvy
+                                 ('c3f', (0, 0, 1,   # 0
+                                          1, 0, 1,   # 1
+                                          1, 1, 1,   # 2
+                                          0, 1, 1,   # 3
+                                          0, 0, 0,   # 4
+                                          1, 0, 0,   # 5
+                                          1, 1, 0,   # 6
+                                          0, 1, 0))) # 7
+
+@window.event
+def on_key_press(symbol, modifier):
+    if symbol == pyglet.window.key.UP:
+        position[1] += 1
+    elif symbol == pyglet.window.key.DOWN:
+        position[1] -= 1
+    elif symbol == pyglet.window.key.RIGHT:
+        position[0] += 1
+    elif symbol == pyglet.window.key.LEFT:
+        position[0] -= 1
+
 
 @window.event
 def on_show():
@@ -20,6 +62,7 @@ def on_show():
     zNear = 0.1 # Jak blízko vidíme. Hodně malé číslo.
     zFar = 320 # Jak daleko vidíme. Dost velké číslo na to, abychom viděli vše, co potřebujeme.
     pyglet.gl.gluPerspective(fovy, aspect, zNear, zFar)
+
 
 @window.event
 def on_draw():
@@ -44,66 +87,25 @@ def on_draw():
     # posunutím všeho dopředu a pozorovatele/kamery dozaru.
     pyglet.gl.glTranslatef(0, 0, -6)
 
-    # Animace: otáčení kostky podle dvou os.
-    pyglet.gl.glRotatef(RUNNING_TIME * 30, 1, 1, 0)
-
-    pyglet.graphics.draw_indexed(8,
-                                 pyglet.gl.GL_LINES, # Drátěná kostka z čar
-
-                                 # Odkazy do n-tic níže
-                                 [0, 1, 1, 2, 2, 3, 3, 0,   # Přední stěna
-                                  4, 5, 5, 6, 6, 7, 7, 4,   # Zadní stěna
-                                  0, 4, 1, 5, 2, 6, 3, 7],  # Spojnice: boční stěny
-
-                                 # Vrcholy
-                                 ('v3f', (-1.0, -1.0, 1.0,    # 0
-                                          1.0,  -1.0, 1.0,    # 1
-                                          1.0,   1.0, 1.0,    # 2
-                                          -1.0,  1.0, 1.0,    # 3
-                                          -1.0, -1.0, -1.0,   # 4
-                                          1.0,  -1.0, -1.0,   # 5
-                                          1.0,   1.0, -1.0,   # 6
-                                          -1.0,  1.0, -1.0)), # 7
-
-                                 # Barvy
-                                 ('c3f', (0.0, 0.0, 1.0,   # 0
-                                          1.0, 0.0, 1.0,   # 1
-                                          1.0, 1.0, 1.0,   # 2
-                                          0.0, 1.0, 1.0,   # 3
-                                          0.0, 0.0, 0.0,   # 4
-                                          1.0, 0.0, 0.0,   # 5
-                                          1.0, 1.0, 0.0,   # 6
-                                          0.0, 1.0, 0.0))) # 7
-
-    # Druhá kostka bude menší.
+    pyglet.gl.glRotatef(0, 1, 1, 0)
     pyglet.gl.glScalef(0.5, 0.5, 0.5)
 
-    pyglet.graphics.draw_indexed(8,
+    draw_cube()
+    pyglet.gl.glTranslatef(1, 0, 0)
+    draw_cube()
+    pyglet.gl.glTranslatef(1, 0, 0)
+    draw_cube()
+    pyglet.gl.glTranslatef(0, 1, 0)
+    draw_cube()
+    pyglet.gl.glTranslatef(-2, 1, 0)
+    draw_cube()
+    pyglet.gl.glTranslatef(2, 0, 0)
+    draw_cube()
 
-                                 pyglet.gl.GL_TRIANGLE_STRIP, # Plná kostka z trojúhelníků.
-
-                                 # Odkazy do n-tic níže
-                                 [1, 0, 2, 3, 6, 7, 5, 4, 1, 0, 0, 4, 3, 7, 7, 6, 6, 5, 2, 1],
-
-                                 # Vrcholy
-                                 ('v3f', (-1.0, -1.0, 1.0,    # 0
-                                           1.0, -1.0, 1.0,    # 1
-                                           1.0,  1.0, 1.0,    # 2
-                                          -1.0,  1.0, 1.0,    # 3
-                                          -1.0, -1.0, -1.0,   # 4
-                                           1.0, -1.0, -1.0,   # 5
-                                           1.0,  1.0, -1.0,   # 6
-                                          -1.0,  1.0, -1.0)), # 7
-
-                                 # Barvy
-                                 ('c3f', (0.0, 0.0, 1.0,   # 0
-                                          1.0, 0.0, 1.0,   # 1
-                                          1.0, 1.0, 1.0,   # 2
-                                          0.0, 1.0, 1.0,   # 3
-                                          0.0, 0.0, 0.0,   # 4
-                                          1.0, 0.0, 0.0,   # 5
-                                          1.0, 1.0, 0.0,   # 6
-                                          0.0, 1.0, 0.0))) # 7
+    pyglet.gl.glTranslatef(-2, -2, 0)
+    pyglet.gl.glTranslatef(*position)
+    pyglet.gl.glScalef(0.5, 0.5, 0.5)
+    draw_cube()
 
 
 def tick(dt):

@@ -1,6 +1,7 @@
 import pyglet
 
 window = pyglet.window.Window(width=400, height=400, config=pyglet.gl.Config(depth_size=24, double_buffer=True))
+pressed_keys = set()
 
 sound = pyglet.media.load('tada.wav', streaming=False)
 play_sound = True
@@ -25,8 +26,7 @@ for file_position, char in data.items():
         wall_positions.append(translated_position)
     elif char == 'S':
         player_position = translated_position
-        source_player_position = player_position
-        target_player_positions  =[]
+        source_player_position, target_player_position = player_position, player_position
     elif char == 'F':
         finish_position = translated_position
 
@@ -63,29 +63,14 @@ def draw_cube_at(x, y, scale=1, rotate=(0, 0, 0, 0)):
     pyglet.gl.glScalef(1 / scale, 1 / scale, 1 / scale)
     pyglet.gl.glTranslatef(-x, -y, 0)
 
+@window.event
+def on_key_release(symbol, modifier):
+    pressed_keys.remove(symbol)
+
 
 @window.event
 def on_key_press(symbol, modifier):
-    global target_player_positions
-
-    if target_player_positions:
-        x, y = target_player_positions[-1]
-    else:
-        x, y = player_position
-
-    if symbol == pyglet.window.key.UP:
-        updated_player_position = x, y + 1
-    elif symbol == pyglet.window.key.DOWN:
-        updated_player_position = x, y - 1
-    elif symbol == pyglet.window.key.RIGHT:
-        updated_player_position = x + 1, y
-    elif symbol == pyglet.window.key.LEFT:
-        updated_player_position = x - 1, y
-    else:
-        updated_player_position = x, y
-
-    if updated_player_position not in wall_positions:
-        target_player_positions.append(updated_player_position)
+    pressed_keys.add(symbol)
 
 
 @window.event
@@ -134,7 +119,7 @@ def on_draw():
 
 
 def tick(dt):
-    global i, play_sound, player_position, source_player_position, player_animation_dt
+    global i, play_sound, player_position, source_player_position, target_player_position, player_animation_dt
     i += dt
 
     if player_position == finish_position:
@@ -144,13 +129,25 @@ def tick(dt):
     else:
         play_sound = True
 
-    while target_player_positions and player_position == target_player_positions[0]:
+    if player_position == target_player_position:
         player_animation_dt = 0
         source_player_position = player_position
-        del target_player_positions[0]
+        updated_player_position_x, updated_player_position_y = player_position
 
-    if target_player_positions:
-        target_player_position = target_player_positions[0]
+        if pyglet.window.key.UP in pressed_keys:
+            updated_player_position_y += 1
+        if pyglet.window.key.DOWN in pressed_keys:
+            updated_player_position_y -= 1
+        if pyglet.window.key.RIGHT in pressed_keys:
+            updated_player_position_x += 1
+        if pyglet.window.key.LEFT in pressed_keys:
+            updated_player_position_x -= 1
+
+        updated_player_position = updated_player_position_x, updated_player_position_y
+
+        if updated_player_position not in wall_positions:
+            target_player_position = updated_player_position
+    else:
         player_animation_dt += dt
         player_position_delta = (
             target_player_position[0] - source_player_position[0],

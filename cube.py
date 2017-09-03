@@ -104,9 +104,11 @@ def on_draw():
     pyglet.gl.glMatrixMode(pyglet.gl.GL_MODELVIEW)
     pyglet.gl.glLoadIdentity()
     pyglet.gl.glTranslatef(0, 0, -6)
-    pyglet.gl.glRotatef(i * 50, 1, 1, 0)  # seems to rotate c degrees around a point x,y,z???
+    # pyglet.gl.glRotatef(i * 50, 1, 1, 0)  # seems to rotate c degrees around a point x,y,z???
     pyglet.gl.glRotatef(0, 1, 1, 0)  # seems to rotate c degrees around a point x,y,z???
     pyglet.gl.glScalef(0.5, 0.5, 0.5)
+
+    pyglet.gl.glTranslatef(-player_position[0], -player_position[1], 0)
 
     window.clear()
 

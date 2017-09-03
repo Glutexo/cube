@@ -5,10 +5,26 @@ window = pyglet.window.Window(width=400, height=400, config=pyglet.gl.Config(dep
 sound = pyglet.media.load('tada.wav', streaming=False)
 play_sound = True
 
-wall_positions = [(0, 0), (1, 0), (2, 0), (2, 1), (0, 2), (2, 2)]
+max_y = 0
+with open('maze.txt', 'r') as file:
+    data = {}
+    for y, line in enumerate(file):
+        line = line.strip('\n')
+        for x, char in enumerate(line):
+            data[x, y] = char
+            if y > max_y:
+                max_y = y
 
-player_position = (0, 1)
-finish_position = (1, 3)
+wall_positions = []
+for file_position, char in data.items():
+    translated_position = (file_position[0], max_y - file_position[1])
+    # translated_position = (file_position[0], file_position[1])
+    if char == 'W':
+        wall_positions.append(translated_position)
+    elif char == 'S':
+        player_position = translated_position
+    elif char == 'F':
+        finish_position = translated_position
 
 i = 0
 
@@ -88,7 +104,7 @@ def on_draw():
     pyglet.gl.glMatrixMode(pyglet.gl.GL_MODELVIEW)
     pyglet.gl.glLoadIdentity()
     pyglet.gl.glTranslatef(0, 0, -6)
-    # pyglet.gl.glRotatef(i * 50, 1, 1, 0)  # seems to rotate c degrees around a point x,y,z???
+    pyglet.gl.glRotatef(i * 50, 1, 1, 0)  # seems to rotate c degrees around a point x,y,z???
     pyglet.gl.glRotatef(0, 1, 1, 0)  # seems to rotate c degrees around a point x,y,z???
     pyglet.gl.glScalef(0.5, 0.5, 0.5)
 

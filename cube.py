@@ -12,6 +12,8 @@ with open('maze.txt', 'r') as file:
         line = line.strip('\n')
         for x, char in enumerate(line):
             data[x, y] = char
+
+            # Flip the map vertically, as Y raises upwards.
             if y > max_y:
                 max_y = y
 
@@ -23,11 +25,13 @@ for file_position, char in data.items():
         wall_positions.append(translated_position)
     elif char == 'S':
         player_position = translated_position
+        source_player_position, target_player_position = player_position, player_position
     elif char == 'F':
         finish_position = translated_position
 
 i = 0
-
+player_animation_dt = 0
+player_animation_duration = 0.5
 
 def draw_cube():
     pyglet.graphics.draw_indexed(8, pyglet.gl.GL_TRIANGLE_STRIP, [1, 0, 2, 3, 6, 7, 5, 4, 1, 0, 0, 4, 3, 7, 7, 6, 6, 5, 2, 1],
@@ -61,23 +65,23 @@ def draw_cube_at(x, y, scale=1, rotate=(0, 0, 0, 0)):
 
 @window.event
 def on_key_press(symbol, modifier):
-    global player_position
+    global target_player_position
 
-    x, y = player_position
+    x, y = target_player_position
 
     if symbol == pyglet.window.key.UP:
-        new_player_position = x, y + 1
+        updated_player_position = x, y + 1
     elif symbol == pyglet.window.key.DOWN:
-        new_player_position = x, y - 1
+        updated_player_position = x, y - 1
     elif symbol == pyglet.window.key.RIGHT:
-        new_player_position = x + 1, y
+        updated_player_position = x + 1, y
     elif symbol == pyglet.window.key.LEFT:
-        new_player_position = x - 1, y
+        updated_player_position = x - 1, y
     else:
-        new_player_position = x, y
+        updated_player_position = x, y
 
-    if new_player_position not in wall_positions:
-        player_position = new_player_position
+    if updated_player_position not in wall_positions:
+        target_player_position = updated_player_position
 
 
 @window.event
@@ -126,7 +130,7 @@ def on_draw():
 
 
 def tick(dt):
-    global i, play_sound
+    global i, play_sound, player_position, source_player_position, player_animation_dt
     i += dt
 
     if player_position == finish_position:
@@ -135,6 +139,23 @@ def tick(dt):
         play_sound = False
     else:
         play_sound = True
+
+    if player_position == target_player_position:
+        player_animation_dt = 0
+        source_player_position = player_position
+    else:
+        player_animation_dt += dt
+        player_position_delta = (
+            target_player_position[0] - source_player_position[0],
+            target_player_position[1] - source_player_position[1]
+        )
+        player_animation_coef = player_animation_dt / player_animation_duration
+        if player_animation_coef >= 1:
+            player_animation_coef = 1
+        player_position = (
+            source_player_position[0] + player_position_delta[0] * player_animation_coef,
+            source_player_position[1] + player_position_delta[1] * player_animation_coef
+        )
 
 
 pyglet.clock.schedule_interval(tick, 1/30)

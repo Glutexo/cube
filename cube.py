@@ -125,7 +125,6 @@ def on_key_press(symbol, modifier):
     pressed_keys.add(symbol)
 
 
-
 @window.event
 def on_show():
     # Režim GL_PROJECTION slouží k nastavování pohledu (dívání se) na svět: zorného pole, perspektivy atp. Jedná se
@@ -133,7 +132,8 @@ def on_show():
     pyglet.gl.glMatrixMode(pyglet.gl.GL_PROJECTION)
     pyglet.gl.glLoadIdentity() # Vyresetuje matici do výchozího stavu – zruší všechny transformace.
 
-    fovy = 45.0 # Úhel, který vidíme.
+    # fovy = 45.0 # Úhel, který vidíme.
+    fovy = 60.0 # Úhel, který vidíme.
     aspect = float(window.width) / window.height # Poměr stran
     zNear = 0.1 # Jak blízko vidíme. Hodně malé číslo.
     zFar = 320 # Jak daleko vidíme. Dost velké číslo na to, abychom viděli vše, co potřebujeme.
@@ -160,11 +160,11 @@ def on_draw():
     pyglet.gl.glEnable(pyglet.gl.GL_DEPTH_TEST)
     pyglet.gl.glDepthFunc(pyglet.gl.GL_LEQUAL)
 
-    # Posune pozorovatele/kameru trochu dozadu, ať něco vidíme: Kostku totiž kreslíme na nule. Není rozdíl mezi
-    # posunutím všeho dopředu a pozorovatele/kamery dozaru.
-    pyglet.gl.glTranslatef(0, 0, -6)
+    pyglet.gl.glRotatef(90, 0, 1, 0)
+    pyglet.gl.glRotatef(-90, 1, 0, 0)
+    pyglet.gl.glTranslatef(0.3, 0, 0)
+    pyglet.gl.glRotatef(-player_rotation + 90, 0, 0, 1)
 
-    pyglet.gl.glRotatef(-15, 1, 1, 0)
     pyglet.gl.glScalef(0.5, 0.5, 0.5)
 
     pyglet.gl.glTranslatef(-player_position[0], -player_position[1], 0)
@@ -179,7 +179,7 @@ def on_draw():
     draw_batch_at(finish_batch, finish_texture_region, *finish_position, 0.005, ((90, 1, 0, 0),))
 
     # Player.
-    draw_batch_at(player_batch, player_texture_region, *player_position, 0.25, ((player_rotation, 0, 0, 1), (90, 1, 0, 0)))
+    # draw_batch_at(player_batch, player_texture_region, *player_position, 0.25, ((player_rotation, 0, 0, 1), (90, 1, 0, 0)))
 
 
 def tick(dt):

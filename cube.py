@@ -48,6 +48,7 @@ for file_position, char in data.items():
         finish_position = translated_position
 
 i = 0
+player_rotation = 0
 player_animation_dt = 0
 player_animation_duration = 0.3
 
@@ -71,22 +72,23 @@ def draw_cube():
                                           0, 1, 0)))
 
 @contextlib.contextmanager
-def pushed_matrix_at(x, y, scale=1, rotate=(0, 0, 0, 0)):
+def pushed_matrix_at(x, y, scale=1, rotate=()):
     pyglet.gl.glPushMatrix()
     pyglet.gl.glTranslatef(x, y, 0)
     pyglet.gl.glScalef(scale, scale, scale)
-    pyglet.gl.glRotatef(*rotate)
+    for r in rotate:
+        pyglet.gl.glRotatef(*r)
     yield
     pyglet.gl.glPopMatrix()
 
 
-def draw_cube_at(x, y, scale=1, rotate=(0, 0, 0, 0)):
+def draw_cube_at(x, y, scale=1, rotate=()):
     pyglet.gl.glFrontFace(pyglet.gl.GL_CW)
     with pushed_matrix_at(x, y, scale, rotate):
         draw_cube()
 
 
-def draw_batch_at(batch, texture, x, y, scale=1, rotate=(0, 0, 0, 0)):
+def draw_batch_at(batch, texture, x, y, scale=1, rotate=()):
     pyglet.gl.glFrontFace(pyglet.gl.GL_CCW)
     with pushed_matrix_at(x, y, scale, rotate):
         pyglet.gl.glEnable(pyglet.gl.GL_TEXTURE_2D)
@@ -146,14 +148,14 @@ def on_draw():
         draw_cube_at(*wall_position)
 
     # Finish.
-    draw_batch_at(finish_batch, finish_texture_region, *finish_position, 0.005, (90, 1, 0, 0))
+    draw_batch_at(finish_batch, finish_texture_region, *finish_position, 0.005, ((90, 1, 0, 0),))
 
     # Player.
-    draw_batch_at(player_batch, player_texture_region, *player_position, 0.25, (90, 1, 0, 0))
+    draw_batch_at(player_batch, player_texture_region, *player_position, 0.25, ((player_rotation, 0, 0, 1), (90, 1, 0, 0)))
 
 
 def tick(dt):
-    global i, play_sound, player_position, source_player_position, target_player_position, player_animation_dt
+    global i, play_sound, player_position, player_rotation, source_player_position, target_player_position, player_animation_dt
     i += dt
 
     if player_position == finish_position:
@@ -170,12 +172,16 @@ def tick(dt):
 
         if pyglet.window.key.UP in pressed_keys:
             updated_player_position_y += 1
+            player_rotation = 180
         if pyglet.window.key.DOWN in pressed_keys:
             updated_player_position_y -= 1
+            player_rotation = 0
         if pyglet.window.key.RIGHT in pressed_keys:
             updated_player_position_x += 1
+            player_rotation = 90
         if pyglet.window.key.LEFT in pressed_keys:
             updated_player_position_x -= 1
+            player_rotation = 270
 
         updated_player_position = updated_player_position_x, updated_player_position_y
 

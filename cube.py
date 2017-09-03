@@ -49,6 +49,7 @@ for file_position, char in data.items():
 
 i = 0
 player_rotation = 90
+source_player_rotation = target_player_rotation = player_rotation
 player_animation_dt = 0
 player_animation_duration = 0.3
 
@@ -182,7 +183,7 @@ def on_draw():
 
 
 def tick(dt):
-    global RUNNING_TIME, play_sound, player_position, player_rotation, source_player_position, target_player_position, player_animation_dt
+    global RUNNING_TIME, play_sound, player_position, player_rotation, source_player_position, target_player_position, source_player_rotation, target_player_rotation, player_animation_dt
     RUNNING_TIME += dt
 
     if player_position == finish_position:
@@ -192,10 +193,11 @@ def tick(dt):
     else:
         play_sound = True
 
-    if player_position == target_player_position:
+    if player_position == target_player_position and player_rotation == target_player_rotation % 360:
         player_animation_dt = 0
         source_player_position = player_position
-        updated_player_position_x, updated_player_position_y = player_position
+        source_player_rotation = target_player_rotation = player_rotation
+        updated_player_position_x,  updated_player_position_y = player_position
 
         if pyglet.window.key.UP in pressed_keys:
             if player_rotation == 0:
@@ -216,11 +218,9 @@ def tick(dt):
             elif player_rotation == 270:
                 updated_player_position_x += 1
         if pyglet.window.key.RIGHT in pressed_keys:
-            player_rotation -= 90
+            target_player_rotation -= 90
         if pyglet.window.key.LEFT in pressed_keys:
-            player_rotation += 90
-
-        player_rotation = player_rotation % 360
+            target_player_rotation += 90
 
         updated_player_position = updated_player_position_x, updated_player_position_y
 
@@ -232,6 +232,8 @@ def tick(dt):
             target_player_position[0] - source_player_position[0],
             target_player_position[1] - source_player_position[1]
         )
+        player_rotation_delta = target_player_rotation - source_player_rotation
+
         player_animation_coef = player_animation_dt / player_animation_duration
         if player_animation_coef >= 1:
             player_animation_coef = 1
@@ -239,6 +241,7 @@ def tick(dt):
             source_player_position[0] + player_position_delta[0] * player_animation_coef,
             source_player_position[1] + player_position_delta[1] * player_animation_coef
         )
+        player_rotation = (source_player_rotation + player_rotation_delta * player_animation_coef) % 360
 
 
 pyglet.clock.schedule_interval(tick, 1 / 30)

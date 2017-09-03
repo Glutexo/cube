@@ -25,13 +25,14 @@ for file_position, char in data.items():
         wall_positions.append(translated_position)
     elif char == 'S':
         player_position = translated_position
-        source_player_position, target_player_position = player_position, player_position
+        source_player_position = player_position
+        target_player_positions  =[]
     elif char == 'F':
         finish_position = translated_position
 
 i = 0
 player_animation_dt = 0
-player_animation_duration = 0.5
+player_animation_duration = 0.3
 
 def draw_cube():
     pyglet.graphics.draw_indexed(8, pyglet.gl.GL_TRIANGLE_STRIP, [1, 0, 2, 3, 6, 7, 5, 4, 1, 0, 0, 4, 3, 7, 7, 6, 6, 5, 2, 1],
@@ -65,9 +66,12 @@ def draw_cube_at(x, y, scale=1, rotate=(0, 0, 0, 0)):
 
 @window.event
 def on_key_press(symbol, modifier):
-    global target_player_position
+    global target_player_positions
 
-    x, y = target_player_position
+    if target_player_positions:
+        x, y = target_player_positions[-1]
+    else:
+        x, y = player_position
 
     if symbol == pyglet.window.key.UP:
         updated_player_position = x, y + 1
@@ -81,7 +85,7 @@ def on_key_press(symbol, modifier):
         updated_player_position = x, y
 
     if updated_player_position not in wall_positions:
-        target_player_position = updated_player_position
+        target_player_positions.append(updated_player_position)
 
 
 @window.event
@@ -140,10 +144,13 @@ def tick(dt):
     else:
         play_sound = True
 
-    if player_position == target_player_position:
+    while target_player_positions and player_position == target_player_positions[0]:
         player_animation_dt = 0
         source_player_position = player_position
-    else:
+        del target_player_positions[0]
+
+    if target_player_positions:
+        target_player_position = target_player_positions[0]
         player_animation_dt += dt
         player_position_delta = (
             target_player_position[0] - source_player_position[0],

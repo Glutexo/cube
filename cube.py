@@ -6,6 +6,8 @@ pressed_keys = set()
 sound = pyglet.media.load('tada.wav', streaming=False)
 play_sound = True
 
+camera_mode = 1 # Supported modes: 1, 3
+
 # Model from: https://opengameart.org/content/treasure-chest-3
 # (but use a cleaned-up model instead of the one from there)!
 finish_image = pyglet.image.load('Treasurechest_DIFF.png')
@@ -102,12 +104,19 @@ def draw_batch_at(batch, texture, x, y, scale=1, rotate=()):
 
 @window.event
 def on_key_release(symbol, modifier):
-    pressed_keys.remove(symbol)
+    pressed_keys.discard(symbol)
 
 
 @window.event
 def on_key_press(symbol, modifier):
-    pressed_keys.add(symbol)
+    global camera_mode
+    if symbol == pyglet.window.key.SPACE:
+        if camera_mode == 1:
+            camera_mode = 3
+        else:
+            camera_mode = 1
+    else:
+        pressed_keys.add(symbol)
 
 
 @window.event
@@ -128,20 +137,19 @@ def on_draw():
     pyglet.gl.glEnable(pyglet.gl.GL_CULL_FACE)
     pyglet.gl.glCullFace(pyglet.gl.GL_BACK)
 
-    # Move the camera back a little.
-    # TODO(sam): When you want to start rotating the camera, this should move into on_draw,
-    # and there should be a call to gRotatef.
     pyglet.gl.glMatrixMode(pyglet.gl.GL_MODELVIEW)
     pyglet.gl.glLoadIdentity()
 
+    if camera_mode == 1:
+        pyglet.gl.glRotatef(90, 0, 1, 0)
+        pyglet.gl.glRotatef(-90, 1, 0, 0)
+        pyglet.gl.glTranslatef(0.3, 0, 0)
+        pyglet.gl.glRotatef(-player_rotation + 90, 0, 0, 1)
+    elif camera_mode == 3:
+        pyglet.gl.glTranslatef(0, 0, -6)
+        pyglet.gl.glRotatef(-15, 1, 1, 0)
+        # pyglet.gl.glRotatef(i * 50, 1, 1, 0)
 
-    pyglet.gl.glRotatef(90, 0, 1, 0)
-    pyglet.gl.glRotatef(-90, 1, 0, 0)
-    pyglet.gl.glTranslatef(0.3, 0, 0)
-    pyglet.gl.glRotatef(-player_rotation + 90, 0, 0, 1)
-
-    # pyglet.gl.glRotatef(i * 50, 1, 1, 0)  # seems to rotate c degrees around a point x,y,z???
-    # pyglet.gl.glRotatef(-15, 1, 1, 0)  # seems to rotate c degrees around a point x,y,z???
     pyglet.gl.glScalef(0.5, 0.5, 0.5)
 
     pyglet.gl.glTranslatef(-player_position[0], -player_position[1], 0)
@@ -159,7 +167,8 @@ def on_draw():
     draw_batch_at(finish_batch, finish_texture_region, *finish_position, 0.005, ((90, 1, 0, 0),))
 
     # Player.
-    # draw_batch_at(player_batch, player_texture_region, *player_position, 0.25, ((player_rotation, 0, 0, 1), (90, 1, 0, 0)))
+    if camera_mode == 3:
+        draw_batch_at(player_batch, player_texture_region, *player_position, 0.25, ((player_rotation, 0, 0, 1), (90, 1, 0, 0)))
 
 
 def tick(dt):

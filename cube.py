@@ -116,7 +116,8 @@ def on_show():
     # Set up projection matrix.
     pyglet.gl.glMatrixMode(pyglet.gl.GL_PROJECTION)
     pyglet.gl.glLoadIdentity()
-    pyglet.gl.gluPerspective(45.0, float(window.width) / window.height, 0.1, 360)
+    # pyglet.gl.gluPerspective(45.0, float(window.width) / window.height, 0.1, 360)
+    pyglet.gl.gluPerspective(60.0, float(window.width) / window.height, 0.1, 360)
 
 
 @window.event
@@ -132,9 +133,15 @@ def on_draw():
     # and there should be a call to gRotatef.
     pyglet.gl.glMatrixMode(pyglet.gl.GL_MODELVIEW)
     pyglet.gl.glLoadIdentity()
-    pyglet.gl.glTranslatef(0, 0, -6)
+
+
+    pyglet.gl.glRotatef(90, 0, 1, 0)
+    pyglet.gl.glRotatef(-90, 1, 0, 0)
+    pyglet.gl.glTranslatef(0.3, 0, 0)
+    pyglet.gl.glRotatef(-player_rotation + 90, 0, 0, 1)
+
     # pyglet.gl.glRotatef(i * 50, 1, 1, 0)  # seems to rotate c degrees around a point x,y,z???
-    pyglet.gl.glRotatef(-15, 1, 1, 0)  # seems to rotate c degrees around a point x,y,z???
+    # pyglet.gl.glRotatef(-15, 1, 1, 0)  # seems to rotate c degrees around a point x,y,z???
     pyglet.gl.glScalef(0.5, 0.5, 0.5)
 
     pyglet.gl.glTranslatef(-player_position[0], -player_position[1], 0)
@@ -152,7 +159,7 @@ def on_draw():
     draw_batch_at(finish_batch, finish_texture_region, *finish_position, 0.005, ((90, 1, 0, 0),))
 
     # Player.
-    draw_batch_at(player_batch, player_texture_region, *player_position, 0.25, ((player_rotation, 0, 0, 1), (90, 1, 0, 0)))
+    # draw_batch_at(player_batch, player_texture_region, *player_position, 0.25, ((player_rotation, 0, 0, 1), (90, 1, 0, 0)))
 
 
 def tick(dt):

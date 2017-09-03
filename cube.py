@@ -1,12 +1,17 @@
 import pyglet
 
 window = pyglet.window.Window(width=400, height=400, config=pyglet.gl.Config(depth_size=24, double_buffer=True))
-companion_cube = pyglet.image.load('companion_cube.png')
-texture_region = companion_cube.get_texture()
 
-position = [0, 1, 0]
+sound = pyglet.media.load('tada.wav', streaming=False)
+play_sound = True
+
+wall_positions = [(0, 0), (1, 0), (2, 0), (2, 1), (0, 2), (2, 2)]
+
+player_position = (0, 1)
+finish_position = (1, 3)
 
 i = 0
+
 
 def draw_cube():
     pyglet.graphics.draw_indexed(8, pyglet.gl.GL_TRIANGLE_STRIP, [1, 0, 2, 3, 6, 7, 5, 4, 1, 0, 0, 4, 3, 7, 7, 6, 6, 5, 2, 1],
@@ -27,16 +32,37 @@ def draw_cube():
                                           1, 1, 0,
                                           0, 1, 0)))
 
+
+def draw_cube_at(x, y, scale=1, rotate=(0, 0, 0, 0)):
+    pyglet.gl.glTranslatef(x, y, 0)
+    pyglet.gl.glScalef(scale, scale, scale)
+    pyglet.gl.glRotatef(*rotate)
+    draw_cube()
+    pyglet.gl.glRotatef(-rotate[0], *rotate[1:])
+    pyglet.gl.glScalef(1 / scale, 1 / scale, 1 / scale)
+    pyglet.gl.glTranslatef(-x, -y, 0)
+
+
 @window.event
 def on_key_press(symbol, modifier):
+    global player_position
+
+    x, y = player_position
+
     if symbol == pyglet.window.key.UP:
-        position[1] += 1
+        new_player_position = x, y + 1
     elif symbol == pyglet.window.key.DOWN:
-        position[1] -= 1
+        new_player_position = x, y - 1
     elif symbol == pyglet.window.key.RIGHT:
-        position[0] += 1
+        new_player_position = x + 1, y
     elif symbol == pyglet.window.key.LEFT:
-        position[0] -= 1
+        new_player_position = x - 1, y
+    else:
+        new_player_position = x, y
+
+    if new_player_position not in wall_positions:
+        player_position = new_player_position
+
 
 @window.event
 def on_show():
@@ -45,6 +71,7 @@ def on_show():
     pyglet.gl.glMatrixMode(pyglet.gl.GL_PROJECTION)
     pyglet.gl.glLoadIdentity()
     pyglet.gl.gluPerspective(45.0, float(window.width) / window.height, 0.1, 360)
+
 
 @window.event
 def on_draw():
@@ -69,27 +96,28 @@ def on_draw():
 
     pyglet.gl.glColor3f(1, 1, 1)
 
-    draw_cube()
-    pyglet.gl.glTranslatef(1, 0, 0)
-    draw_cube()
-    pyglet.gl.glTranslatef(1, 0, 0)
-    draw_cube()
-    pyglet.gl.glTranslatef(0, 1, 0)
-    draw_cube()
-    pyglet.gl.glTranslatef(-2, 1, 0)
-    draw_cube()
-    pyglet.gl.glTranslatef(2, 0, 0)
-    draw_cube()
+    # Walls.
+    for wall_position in wall_positions:
+        draw_cube_at(*wall_position)
 
-    pyglet.gl.glTranslatef(-2, -2, 0)
-    pyglet.gl.glTranslatef(*position)
-    pyglet.gl.glScalef(0.5, 0.5, 0.5)
-    draw_cube()
+    # Finish.
+    draw_cube_at(*finish_position, 0.5, (90, 1, 1, 0))
+
+    # Player.
+    draw_cube_at(*player_position, 0.5)
 
 
 def tick(dt):
-    global i
+    global i, play_sound
     i += dt
+
+    if player_position == finish_position:
+        if play_sound:
+            sound.play()
+        play_sound = False
+    else:
+        play_sound = True
+
 
 pyglet.clock.schedule_interval(tick, 1/30)
 pyglet.app.run()

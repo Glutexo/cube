@@ -26,7 +26,7 @@ def load_obj_to_batch(file, batch, group=None):
         line_type = parts[0]
         args = parts[1:]
 
-        if line_type in ('mtllib', 'usemtl', 's'):
+        if line_type in ('mtllib', 'usemtl', 's', 'o'):
             print('Unsupported feature: ' + line_type)
         elif line_type == 'v':
             vertices.append(tuple(float(c) for c in args[:3]))

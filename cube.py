@@ -134,6 +134,8 @@ def on_draw():
     pyglet.gl.glRotatef(0, 1, 1, 0)
     pyglet.gl.glScalef(0.5, 0.5, 0.5)
 
+    pyglet.gl.glTranslatef(-player_position[0], -player_position[1], 0)
+
     # Walls.
     for wall_position in wall_positions:
         draw_cube_at(*wall_position)

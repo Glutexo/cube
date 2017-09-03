@@ -1,10 +1,20 @@
-import pyglet
+import pyglet, batch_loader, contextlib
 
-window = pyglet.window.Window(width=400, height=400, config=pyglet.gl.Config(depth_size=24, double_buffer=True))
+window = pyglet.window.Window(width=800, height=800, config=pyglet.gl.Config(depth_size=24, double_buffer=True))
 pressed_keys = set()
 
 sound = pyglet.media.load('tada.wav', streaming=False)
 play_sound = True
+
+# Model from: https://opengameart.org/content/treasure-chest-3
+# (but use a cleaned-up model instead of the one from there)!
+chest = pyglet.image.load('Treasurechest_DIFF.png')
+chest_texture_region = chest.get_texture()
+
+batch = pyglet.graphics.Batch()
+
+with open('chest.obj') as chest_obj:
+    batch_loader.load_obj_to_batch(chest_obj, batch)
 
 max_y = 0
 with open('maze.txt', 'r') as file:
@@ -67,15 +77,28 @@ def draw_cube():
                                           1, 1, 0,   # 6
                                           0, 1, 0))) # 7
 
-
-def draw_cube_at(x, y, scale=1, rotate=(0, 0, 0, 0)):
+@contextlib.contextmanager
+def pushed_matrix_at(x, y, scale=1, rotate=(0, 0, 0, 0)):
+    pyglet.gl.glPushMatrix()
     pyglet.gl.glTranslatef(x, y, 0)
     pyglet.gl.glScalef(scale, scale, scale)
     pyglet.gl.glRotatef(*rotate)
-    draw_cube()
-    pyglet.gl.glRotatef(-rotate[0], *rotate[1:])
-    pyglet.gl.glScalef(1 / scale, 1 / scale, 1 / scale)
-    pyglet.gl.glTranslatef(-x, -y, 0)
+    yield
+    pyglet.gl.glPopMatrix()
+
+def draw_cube_at(x, y, scale=1, rotate=(0, 0, 0, 0)):
+    with pushed_matrix_at(x, y, scale, rotate):
+        draw_cube()
+
+def draw_batch_at(x, y, scale=1, rotate=(0, 0, 0, 0)):
+    with pushed_matrix_at(x, y, scale, rotate):
+        pyglet.gl.glEnable(pyglet.gl.GL_TEXTURE_2D)
+        pyglet.gl.glBindTexture(pyglet.gl.GL_TEXTURE_2D, chest_texture_region.id)
+
+        batch.draw()
+
+        pyglet.gl.glBindTexture(pyglet.gl.GL_TEXTURE_2D, 0)
+        pyglet.gl.glDisable(pyglet.gl.GL_TEXTURE_2D)
 
 @window.event
 def on_key_release(symbol, modifier):
@@ -131,12 +154,14 @@ def on_draw():
 
     pyglet.gl.glTranslatef(-player_position[0], -player_position[1], 0)
 
+    pyglet.gl.glClearColor(0.7, 0.7, 0.7, 1)
+
     # Walls.
     for wall_position in wall_positions:
         draw_cube_at(*wall_position)
 
     # Finish.
-    draw_cube_at(*finish_position, 0.5, (90, 1, 1, 0))
+    draw_batch_at(*finish_position, 0.005, (90, 1, 0, 0))
 
     # Player.
     draw_cube_at(*player_position, 0.5)

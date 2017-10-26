@@ -61,6 +61,10 @@ RUNNING_TIME = 0
 # Y roste dolů
 # Z roste k nám
 
+def vec(*args):
+    return (pyglet.gl.GLfloat * len(args))(*args)
+
+
 def draw_cube():
     pyglet.graphics.draw_indexed(8,
 
@@ -188,6 +192,13 @@ def on_draw():
     # Walls.
     for wall_position in wall_positions:
         draw_cube_at(*wall_position)
+
+    pyglet.gl.glEnable(pyglet.gl.GL_LIGHTING)
+    pyglet.gl.glEnable(pyglet.gl.GL_COLOR_MATERIAL)
+    pyglet.gl.glEnable(pyglet.gl.GL_LIGHT0)
+    pyglet.gl.glLightfv(pyglet.gl.GL_LIGHT0, pyglet.gl.GL_POSITION, vec(10, 10, 10))
+    pyglet.gl.glLightfv(pyglet.gl.GL_LIGHT0, pyglet.gl.GL_DIFFUSE, vec(1, 1, 1, 1))
+    pyglet.gl.glMaterialfv(pyglet.gl.GL_FRONT, pyglet.gl.GL_AMBIENT_AND_DIFFUSE, vec(0.5, 0.5, 0.5, 1))
 
     # Finish.
     draw_batch_at(finish_batch, finish_texture_region, *finish_position, 0.005, ((90, 1, 0, 0),))
